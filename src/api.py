@@ -3,10 +3,12 @@ from flasgger import Swagger
 from flask_restful import Api, Resource
 from datetime import datetime
 import uuid
-
+import argparse
 
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
+import openai
+from transfer_chatgpt import transfer_chat
 
 password = "WyJRepqRLIZ7K5CJ"
 uri = f"mongodb+srv://master:{password}@cluster0.7pgqvs4.mongodb.net/?retryWrites=true&w=majority"
@@ -28,6 +30,9 @@ app = Flask(__name__)
 api = Api(app)
 
 swagger = Swagger(app)
+
+openai.api_key = "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"
+openai.Model.list()
 
 ## 創建使用者/查詢使用者的所有session
 
@@ -183,7 +188,7 @@ class User(Resource):
             print(e)
             abort(500)
 
-api.add_resource(User, '/user', '/user/<string:user_name>/sessions')
+
 
 class Session(Resource):
     def put(self, sessionId): ## update title
@@ -266,9 +271,21 @@ class Session(Resource):
             new_message = request_data['messages']
             # Process message content (e.g., using OpenAI chat)
             # For demonstration purposes, adding a default response
-            response_from_openAI = "Sorry, I don't understand."
-            session['messages'].append(new_message)
-            session['messages'].append(response_from_openAI)
+            if args.api:
+                chat_history = session['messages']
+                chat_history.append(new_message)
+                chat_history = transfer_chat(chat_history)
+                response_from_openAI = openai.ChatCompletion.create(
+                    model="gpt-3.5-turbo",
+                    messages=chat_history
+                )
+                response_from_openAI = response_from_openAI.choices[0].message.content
+                session['messages'].append(new_message)
+                session['messages'].append(response_from_openAI)
+            else:
+                response_from_openAI = "Sorry, I don't understand."
+                session['messages'].append(new_message)
+                session['messages'].append(response_from_openAI)
             return session, 200
         else:
             return {"error": "Session not found"}, 404
@@ -385,10 +402,20 @@ class Session(Resource):
             print(e)
             abort(500)
 
-
-
 api.add_resource(Session, '/session/<string:sessionId>')
+api.add_resource(User, '/user', '/user/<string:user_name>/sessions')
 
+parser = argparse.ArgumentParser(description='Flask App Argument Parser')
+parser.add_argument('--debug', action='store_true', help='Enable debug mode')
+parser.add_argument('--chat', action='store_false', help='Open the chatgpt')
 
 if __name__ == '__main__':
     app.run(debug=True)
+
+    args = parser.parse_args()
+
+    if args.debug:
+        openai_api = args.api
+        app.run(debug=True)
+    else:
+        app.run()
