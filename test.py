@@ -1,7 +1,8 @@
-from flask import Flask, request
+from flask import Flask, request, jsonify, make_response
 from flasgger import Swagger
 from flask_restful import Api, Resource
 from datetime import datetime
+import json
 
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
@@ -18,12 +19,10 @@ try:
     print("Pinged your deployment. You successfully connected to MongoDB!")
 except Exception as e:
     print(e)
-
 db = client["mydatabase"]
 user_collection = db["users"]
 
 currentDateAndTime = datetime.now()
-
 app = Flask(__name__)
 api = Api(app)
 
@@ -42,18 +41,18 @@ sessions_data = [
         "user": "user_1",
         "title": "Session 1",
         "messages": ["Message 3", "Message 4"],
-        "createdAt": currentDateAndTime + 10
+        "createdAt": currentDateAndTime
     },
     {
         "session_id": "session_id_2",
         "user": "user_2",
         "title": "Session 2",
         "messages": ["Hello", "Hi"],
-        "createdAt": datetime.now() - 10
+        "createdAt": currentDateAndTime
     }
 ]
 
-class UserSession(Resource):
+class User(Resource):
     def post(self, userId): ### create a session for user
         """
         Create a new session for a user by ID
@@ -133,14 +132,14 @@ class UserSession(Resource):
             "createdAt": request_data.get("createdAt"),
             "messages": request_data.get("messages", [])
         }
-        if new_session:
-            inserted_data = user_collection.insert_one(sessions_data)
-            if inserted_data:
-                print("Successful insert")
-                new_session_id = inserted_data.inserted_id
-                new_session["_id"] = new_session_id
-            else:
-                print("insert data error")
+        # if new_session:
+        #     inserted_data = user_collection.insert_one(sessions_data)
+        #     if inserted_data:
+        #         print("Successful insert")
+        #         new_session_id = inserted_data.inserted_id
+        #         new_session["_id"] = new_session_id
+        #     else:
+        #         print("insert data error")
 
         return new_session, 201
 
@@ -190,10 +189,14 @@ class UserSession(Resource):
         # Your logic to retrieve sessions for the given user ID
         # This is just a mock response for demonstration
 
+        all_users = user_collection.find({"user" : userId})
+        data_list = []
+        for data in all_users:
+            del data["_id"]
+            data_list.append(data)
         if not userId:
             return {"error": "User ID is required"}, 400
-
-        return userId, 200
+        return make_response(jsonify(data_list), 200)
 
 
 
@@ -337,7 +340,8 @@ class Session(Resource):
             return {"error": "Session not found"}, 404
 
 api.add_resource(Session, '/session/<string:sessionId>')
-api.add_resource(UserSession, '/users/<string:userId>/sessions')
+
+api.add_resource(User, '/users/<string:userId>')
 
 if __name__ == '__main__':
     app.run(debug=True)
