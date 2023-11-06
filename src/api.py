@@ -9,12 +9,19 @@ from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 import openai
 from transfer_chatgpt import transfer_chat
+import json
 
-password = "WyJRepqRLIZ7K5CJ"
-uri = f"mongodb+srv://master:{password}@cluster0.7pgqvs4.mongodb.net/?retryWrites=true&w=majority"
+# Open the JSON file and load its content
+with open('tmp/key.json') as f:
+    data = json.load(f)
+
+mg_password = data["mongadb"]
+uri = f"mongodb+srv://master:{mg_password}@cluster0.7pgqvs4.mongodb.net/?retryWrites=true&w=majority"
 # Create a new client and connect to the server
 client = MongoClient(uri, server_api=ServerApi('1'))
 # Send a ping to confirm a successful connection
+
+openai.api_key = data["openai"]
 
 # test
 try:
@@ -31,8 +38,7 @@ api = Api(app)
 
 swagger = Swagger(app)
 
-openai.api_key = "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"
-openai.Model.list()
+
 
 ## 創建使用者/查詢使用者的所有session
 
