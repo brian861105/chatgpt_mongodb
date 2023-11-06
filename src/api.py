@@ -2,7 +2,8 @@ from flask import Flask, request, jsonify, make_response, abort
 from flasgger import Swagger
 from flask_restful import Api, Resource
 from datetime import datetime
-import json
+import uuid
+
 
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
@@ -109,13 +110,10 @@ class User(Resource):
                 "user": userId,
                 "messages": [],
                 "title": "new_title",
+                "sessionId": str(uuid.uuid4()),
                 "createdAt": currentDateAndTime
             }
             inserted_data = user_collection.insert_one(new_session)
-            # if inserted_data:
-            #     print("successful to add user")
-            # else:
-            #     print("fail to add user")
             del new_session["_id"]
             return make_response(jsonify(new_session), 201)
 
@@ -185,10 +183,10 @@ class User(Resource):
             print(e)
             abort(500)
 
-
+api.add_resource(User, '/user', '/user/<string:user_name>/sessions')
 
 class Session(Resource):
-    def put(self, sessionId):
+    def put(self, sessionId): ## update title
         """
         Update session title or add a message by session ID
         ---
@@ -254,18 +252,18 @@ class Session(Resource):
         """
         new_title = request.args.get('title')
         request_data = request.get_json()
+        print(not new_title or (not request_data or 'messages' not in request_data))
+        if not sessionId or (not new_title and (not request_data or 'messages' not in request_data)):
+            return {"error": "Either session ID is invalid or title does not exist"}, 400
 
-        if not sessionId or (not new_title and (not request_data or 'content' not in request_data)):
-            return {"error": "Content and sessionId are required"}, 400
-
-        session = sessions_data.get(sessionId)
-
+        session = user_collection.find_one({"session_id" : sessionId})
+        del session["_id"]
         if session:
             if new_title:
                 session['title'] = new_title
+                print(session['title'])
                 return session, 200
-
-            new_message = request_data['content']
+            new_message = request_data['messages']
             # Process message content (e.g., using OpenAI chat)
             # For demonstration purposes, adding a default response
             response_from_openAI = "Sorry, I don't understand."
@@ -319,9 +317,10 @@ class Session(Resource):
         """
         if not sessionId:
             return {"error": "Session ID is required"}, 400
+        session = user_collection.find_one({"session_id" : sessionId})
 
-        if sessionId in sessions_data:
-            del sessions_data[sessionId]
+        if len(session):
+            user_collection.delete_one({ "session_id" :sessionId})
             return {"message": "Session deleted"}, 200
         else:
             return {"error": "Session not found"}, 404
@@ -375,20 +374,21 @@ class Session(Resource):
             return {"error": "Session ID is required"}, 400
         
         try:
-            all_users = user_collection.find({"session_id" : sessionId})
-            data_list = []
-            for data in all_users:
-                del data["_id"]
-                data_list.append(data)
+            session = user_collection.find_one({"session_id" : sessionId})
 
-            return make_response(jsonify(data_list), 200)
+            del session["_id"]
+
+
+            return make_response(jsonify(session), 200)
         
         except Exception as e:
             print(e)
             abort(500)
 
+
+
 api.add_resource(Session, '/session/<string:sessionId>')
-api.add_resource(User, '/user', '/user/<string:user_name>/sessions')
+
 
 if __name__ == '__main__':
     app.run(debug=True)
