@@ -15,7 +15,7 @@ import json
 with open('tmp/key.json') as f:
     data = json.load(f)
 
-mg_password = data["mongadb"]
+mg_password = data["mongodb"]
 uri = f"mongodb+srv://master:{mg_password}@cluster0.7pgqvs4.mongodb.net/?retryWrites=true&w=majority"
 # Create a new client and connect to the server
 client = MongoClient(uri, server_api=ServerApi('1'))
