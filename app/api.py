@@ -1,15 +1,14 @@
 from flask import Flask, request, jsonify, make_response, abort
-from flasgger import Swagger
 from flask_restful import Api, Resource
 from datetime import datetime
 import uuid
-import argparse
 
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 import openai
 from os.path import dirname, abspath
 import sys
+
 sys.path.append(dirname(dirname(abspath(__file__))))
 
 from src.transfer_chatgpt import transfer_chat
@@ -20,13 +19,17 @@ data_path = os.path.join(os.path.dirname(__file__), '..', 'tmp', 'key.json')
 with open(data_path) as f:
     data = json.load(f)
 
-mg_password = data["mongodb"]
-uri = f"mongodb+srv://master:{mg_password}@cluster0.7pgqvs4.mongodb.net/?retryWrites=true&w=majority"
-# Create a new client and connect to the server
-client = MongoClient(uri, server_api=ServerApi('1'))
-# Send a ping to confirm a successful connection
+mock_db = True
+test_mode = True
+chat_test = True
 
-openai.api_key = data["openai"]
+if(mock_db): 
+    from mongomock import MongoClient as MockMongoClient
+    client = MockMongoClient()
+else:
+    mg_password = data["mongodb"]
+    uri = f"mongodb+srv://master:{mg_password}@cluster0.7pgqvs4.mongodb.net/?retryWrites=true&w=majority"
+    client = MongoClient(uri, server_api=ServerApi('1'))
 
 try:
     client.admin.command('ping')
@@ -40,7 +43,8 @@ currentDateAndTime = datetime.now()
 app = Flask(__name__)
 api = Api(app)
 
-swagger = Swagger(app)
+if chat_test:
+    openai.api_key = data["openai"]
 
 ## 創建使用者/查詢使用者的所有session
 
@@ -48,9 +52,10 @@ class User(Resource):
     def post(self): ### create a session for user
 
         json_data = request.get_json()
-        # if not json_data:
-        #     error_response = {"error": "JSON data is required"}
-        #     return jsonify(error_response), 400
+        if not json_data:
+            error_response = {"error": "JSON data is required"}
+            return jsonify(error_response), 400
+        error_response = {"error": "JSON data is required"}
 
         userId = json_data.get("user_name")
         if not userId:
@@ -67,7 +72,7 @@ class User(Resource):
                 "sessionId": str(uuid.uuid4()),
                 "createdAt": currentDateAndTime
             }
-            inserted_data = user_collection.insert_one(new_session)
+            user_collection.insert_one(new_session)
             del new_session["_id"]
             return make_response(jsonify(new_session), 201)
 
@@ -82,7 +87,6 @@ class User(Resource):
         print(userId)
         if not userId:
             return jsonify({"error": "User ID is required"}), 400
-
         try:    
             all_users = user_collection.find({"user" : userId})
             data_list = []
@@ -116,7 +120,11 @@ class Session(Resource):
             new_message = request_data['messages']
             # Process message content (e.g., using OpenAI chat)
             # For demonstration purposes, adding a default response
-            if args.api:
+            if chat_test:
+                response_from_openAI = "Sorry, I don't understand."
+                session['messages'].append(new_message)
+                session['messages'].append(response_from_openAI)
+            else:
                 chat_history = session['messages']
                 chat_history.append(new_message)
                 chat_history = transfer_chat(chat_history)
@@ -125,10 +133,6 @@ class Session(Resource):
                     messages=chat_history
                 )
                 response_from_openAI = response_from_openAI.choices[0].message.content
-                session['messages'].append(new_message)
-                session['messages'].append(response_from_openAI)
-            else:
-                response_from_openAI = "Sorry, I don't understand."
                 session['messages'].append(new_message)
                 session['messages'].append(response_from_openAI)
             return make_response(session, 200)
@@ -164,20 +168,11 @@ class Session(Resource):
             print(e)
             abort(500)
 
+
+
 api.add_resource(Session, '/session/<string:sessionId>')
 api.add_resource(User, '/user', '/user/<string:userId>/sessions')
 
-parser = argparse.ArgumentParser(description='Flask App Argument Parser')
-parser.add_argument('--debug', action='store_true', help='Enable debug mode')
-parser.add_argument('--chat', action='store_false', help='Open the chatgpt')
-
 if __name__ == '__main__':
-    app.run(debug=True)
 
-    args = parser.parse_args()
-
-    if args.debug:
-        openai_api = args.api
-        app.run(debug=True)
-    else:
-        app.run()
+    app.run(debug=test_mode)
