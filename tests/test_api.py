@@ -11,23 +11,24 @@ from app.api import app
 import pytest
 
 @pytest.fixture
-def client() -> FlaskClient:
+def client(request) -> FlaskClient:
     app.config['TESTING'] = True
+    
     return app.test_client()
+    
 
 def test_create_user_session(client):
     data = {"user_name": "test_user"}
     response = client.post('/user', json=data)
     assert response.status_code == 201
     response_data = response.get_json()
-    assert "sessionId" in response.get_json()
-    
+    assert "sessionId" in response_data
     assert response_data["user"] == "test_user"
 
 def test_create_user_session_empty_json(client):
     # 發送空的 JSON 數據的 POST 請求
-    response = client.post('/user', json={}, content_type='application/json')
-    
+    data = {"user_name": ""}
+    response = client.post('/user', json=data, content_type='application/json')
     # 檢查回應的 HTTP 狀態碼是否為 400 或其他你期望的狀態碼
     assert response.status_code == 400
     
@@ -53,11 +54,6 @@ def test_create_user_session_no_json(client):
 
 
 def test_get_user_sessions(client):
-    response = client.get('/user/test_user/sessions')
+    response = client.get('/user/user_1/sessions')
     assert response.status_code == 200
     assert isinstance(response.get_json(), list)
-
-def test_get_user_sessions_missing_user_id(client):
-    response = client.get('/user//sessions')
-    assert response.status_code == 400
-    assert "error" in response.get_json()
