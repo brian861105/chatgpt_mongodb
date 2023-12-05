@@ -19,7 +19,7 @@ data_path = os.path.join(os.path.dirname(__file__), '..', 'tmp', 'key.json')
 with open(data_path) as f:
     data = json.load(f)
 
-mock_db = True
+mock_db = False
 test_mode = True
 chat_test = True
 
@@ -43,7 +43,7 @@ currentDateAndTime = datetime.now()
 app = Flask(__name__)
 api = Api(app)
 
-if chat_test:
+if not chat_test:
     openai.api_key = data["openai"]
 
 ## 創建使用者/查詢使用者的所有session

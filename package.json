@@ -1,0 +1,16 @@
+{
+  "name": "chatroom-backend",
+  "description": "Backend service for creating custom chatrooms, communicating with OpenAI API, and storing conversations in MongoDB.",
+  "version": "1.0.0",
+  "repository": {
+    "url": "https://github.com/brian861105/chatroom-backend.git"
+  },
+  "bin": {
+    "common-readme": "cli.js"
+  },
+  "dependencies": {
+    "camelcase": "^5.0.0",
+    "minimist": "^1.2.0"
+  },
+  "license": "ISC"
+}
