@@ -16,7 +16,7 @@ Before you begin, ensure you have met the following requirements:
    cd tmp
    ```
 Create a key.json file and add your MongoDB and OpenAI API keys:
-    ```json
+    ```bash
     {
     "mongodb_password": "your_mongodb_password",
     "openai_api_key": "your_openai_api_key"
@@ -38,36 +38,8 @@ Create a key.json file and add your MongoDB and OpenAI API keys:
 ```
 4. Run the application:
 ``` bash
-    python your_script.py
+    python app/api.py
 ```
-## Usage
-
-```python
-python app/api.py
-```
-
-outputs
-
-```
-hello warld
-```
-
-## API
-
-```js
-var chatroomBackend = require('chatroom-backend')
-```
-
-See [api_formatting.md](api_formatting.md) for tips.
-
-## Install
-
-With [npm](https://npmjs.org/) installed, run
-
-```
-$ npm install chatroom-backend
-```
-
 ## Acknowledgments
 
 chatroom-backend was inspired by..
