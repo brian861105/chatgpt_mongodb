@@ -42,14 +42,4 @@ Create a key.json file and add your MongoDB and OpenAI API keys:
 ```
 ## Acknowledgments
 
-chatroom-backend was inspired by..
-
-## See Also
-
-- [`noffle/common-readme`](https://github.com/noffle/common-readme)
-- ...
-
 ## License
-
-ABC
-
