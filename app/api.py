@@ -84,7 +84,6 @@ class User(Resource):
     def get(self, userId): ### get the data of user session 
         # Your logic to retrieve sessions for the given user ID
         # This is just a mock response for demonstration
-        print(userId)
         if not userId:
             return jsonify({"error": "User ID is required"}), 400
         try:    
@@ -106,11 +105,12 @@ class Session(Resource):
     def put(self, sessionId): ## update title
         new_title = request.args.get('title')
         request_data = request.get_json()
-        print(not new_title or (not request_data or 'messages' not in request_data))
+
         if not sessionId or (not new_title and (not request_data or 'messages' not in request_data)):
             return {"error": "Either session ID is invalid or title does not exist"}, 400
 
-        session = user_collection.find_one({"session_id" : sessionId})
+        session = user_collection.find_one({"sessionId" : sessionId})
+        filter_condition = {"sessionId" : sessionId}
         del session["_id"]
         if session:
             if new_title:
@@ -135,6 +135,13 @@ class Session(Resource):
                 response_from_openAI = response_from_openAI.choices[0].message.content
                 session['messages'].append(new_message)
                 session['messages'].append(response_from_openAI)
+            new_session = dict()
+            new_session["$set"] = session
+            result = user_collection.update_one(filter_condition, new_session)
+
+            if result.modified_count == 0:
+                return {"error": "Either session ID is invalid or title does not exist"}, 400
+
             return make_response(session, 200)
         else:
             return {"error": "Session not found"}, 404
@@ -142,10 +149,10 @@ class Session(Resource):
     def delete(self, sessionId):
         if not sessionId:
             return {"error": "Session ID is required"}, 400
-        session = user_collection.find_one({"session_id" : sessionId})
+        session = user_collection.find_one({"sessionId" : sessionId})
 
         if len(session):
-            user_collection.delete_one({ "session_id" :sessionId})
+            user_collection.delete_one({ "sessionId" :sessionId})
             return {"message": "Session deleted"}, 200
         else:
             return {"error": "Session not found"}, 404
@@ -157,7 +164,7 @@ class Session(Resource):
             return {"error": "Session ID is required"}, 400
         
         try:
-            session = user_collection.find_one({"session_id" : sessionId})
+            session = user_collection.find_one({"sessionId" : sessionId})
 
             del session["_id"]
 
