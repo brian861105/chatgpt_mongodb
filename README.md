@@ -16,7 +16,8 @@ Before you begin, ensure you have met the following requirements:
    cd tmp
    ```
 Create a key.json file and add your MongoDB and OpenAI API keys:
-    ```bash
+
+    ```json
     {
     "mongodb_password": "your_mongodb_password",
     "openai_api_key": "your_openai_api_key"
