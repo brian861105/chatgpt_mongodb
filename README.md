@@ -17,7 +17,7 @@ Before you begin, ensure you have met the following requirements:
    ```
 Create a key.json file and add your MongoDB and OpenAI API keys:
 
-    ```json
+    ```bash
     {
     "mongodb_password": "your_mongodb_password",
     "openai_api_key": "your_openai_api_key"
