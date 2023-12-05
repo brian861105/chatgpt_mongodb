@@ -6,7 +6,7 @@ background details relevant to understanding what this module does
 
 ## Usage
 
-```js
+```python
 var chatroomBackend = require('chatroom-backend')
 
 console.log('hello warld')
@@ -45,5 +45,5 @@ chatroom-backend was inspired by..
 
 ## License
 
-ISC
+ABC
 
