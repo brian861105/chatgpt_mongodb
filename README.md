@@ -7,9 +7,7 @@ background details relevant to understanding what this module does
 ## Usage
 
 ```python
-var chatroomBackend = require('chatroom-backend')
-
-console.log('hello warld')
+python app/api.py
 ```
 
 outputs
