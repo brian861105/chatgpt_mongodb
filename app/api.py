@@ -9,6 +9,8 @@ import json
 import os
 from flasgger import Swagger, swag_from
 
+
+## test
 class DatabaseManager:
     def __init__(self, mock_db=False):
         if mock_db:
