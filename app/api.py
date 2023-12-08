@@ -41,12 +41,12 @@ class UserResource(Resource):
         'tags': ['users'],
         'parameters': [{
             'in': 'body',
-            'name': 'body',
+            'name': 'User_name',
             'schema': {
                 'id': 'User',
                 'required': ['user_name'],
-            'properties': {
-                'user_name': {'type': 'string', 'description': 'User ID', 'example': 'john_doe'}
+            'example': {
+                'user_name':'john_doe'
             }
             }
         }],
@@ -142,15 +142,14 @@ class SessionResource(Resource):
             'in': 'query',
             'name': 'title',
             'type': 'string'
-        },
+        },  
         {
             'in': 'body',
             'name': 'user_messages',
             'schema': {
-                'id': 'User',
-                'required': ['user_name'],
-            'properties': {
-                'messages': {'type': 'string', 'description': 'User reply', 'example': 'Hello'},
+                'id': 'Session',
+            'example': {
+                'messages': 'hello world'
                 }
             }
         }
