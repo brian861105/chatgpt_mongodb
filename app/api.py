@@ -21,8 +21,8 @@ class DatabaseManager:
             with open(
                     os.path.join(os.path.dirname(__file__), '..', 'tmp',
                                  'key.json')) as f:
-                data = json.load(f)
-            mg_password = data["mongodb"]
+                key_json = json.load(f)
+            mg_password = key_json["mongodb"]
             uri = f"mongodb+srv://master:{mg_password}@cluster0.7pgqvs4.mongodb.net/?retryWrites=true&w=majority"
             self.client = MongoClient(uri, server_api=ServerApi('1'))
 
@@ -213,6 +213,12 @@ class SessionResource(Resource):
         if (self.mockChatgpt):
             response_from_openai = "Sorry, I don't understand."
         else:
+            with open(
+                    os.path.join(os.path.dirname(__file__), '..', 'tmp',
+                                 'key.json')) as f:
+                key_json = json.load(f)
+            openai_password = key_json["mongodb"]
+            openai.api_key = openai_password
             chat_history = session['messages']
             response_from_openai = openai.ChatCompletion.create(
                 model="gpt-3.5-turbo", messages=chat_history)
@@ -322,4 +328,9 @@ api.add_resource(SessionResource,
                  })
 
 if __name__ == '__main__':
-    app.run(debug=True, host="0.0.0.0")
+    docker = False
+    if docker:
+        app.run(debug=True, host="0.0.0.0")
+    else:
+        app.run(debug=True)
+        
