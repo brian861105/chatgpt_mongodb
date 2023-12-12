@@ -12,27 +12,34 @@ from flasgger import Swagger, swag_from
 
 ## test
 class DatabaseManager:
+
     def __init__(self, mock_db=False):
         if mock_db:
             from mongomock import MongoClient as MockMongoClient
             self.client = MockMongoClient()
         else:
-            with open(os.path.join(os.path.dirname(__file__), '..', 'tmp', 'key.json')) as f:
+            with open(
+                    os.path.join(os.path.dirname(__file__), '..', 'tmp',
+                                 'key.json')) as f:
                 data = json.load(f)
             mg_password = data["mongodb"]
             uri = f"mongodb+srv://master:{mg_password}@cluster0.7pgqvs4.mongodb.net/?retryWrites=true&w=majority"
             self.client = MongoClient(uri, server_api=ServerApi('1'))
-        
+
         try:
             self.client.admin.command('ping')
-            print("Pinged your deployment. You successfully connected to MongoDB!")
+            print(
+                "Pinged your deployment. You successfully connected to MongoDB!"
+            )
         except Exception as e:
             print(e)
-        
+
         self.db = self.client["mydatabase"]
         self.user_collection = self.db["users"]
 
+
 class UserResource(Resource):
+
     def __init__(self, database_manager):
         self.db = database_manager
         self.current_date_and_time = datetime.now().isoformat()
@@ -45,17 +52,21 @@ class UserResource(Resource):
             'schema': {
                 'id': 'User',
                 'required': ['user_name'],
-            'example': {
-                'user_name':'john_doe'
-            }
+                'example': {
+                    'user_name': 'SINOPAC'
+                }
             }
         }],
         'responses': {
             201: {
                 'description': 'User created successfully',
-                'examples': {'User_id': 'User created successfully'}
+                'examples': {
+                    'User_id': 'User created successfully'
+                }
             },
-            400: {'description': 'Bad request'}
+            400: {
+                'description': 'Bad request'
+            }
         }
     })
     def post(self):
@@ -66,7 +77,7 @@ class UserResource(Resource):
         if not json_data:
             error_response = {"error": "JSON data is required"}
             return jsonify(error_response), 400
-        
+
         user_id = json_data.get("user_name")
         if not user_id:
             return {"error": "User ID is required"}, 400
@@ -84,44 +95,54 @@ class UserResource(Resource):
         except Exception as e:
             print(e)
             abort(500)
-        if user_id is not None:
-            # If user_id is provided in the URL, handle accordingly
-            pass
-        else:
-            # If user_id is not provided in the URL, handle accordingly
-            pass
+
 
     @swag_from({
         'tags': ['users'],
         'parameters': [{
-            'in': 'path',
+            'in': 'query',
             'name': 'user_id',
             'type': 'string',
+            'example':'SINOPAC',
             'required': True
         }],
         'responses': {
             200: {
-                'description': 'User sessions retrieved successfully',
-                'examples': [{'user': 'john', 'sessionId': '1234'}, {'user': 'jane', 'sessionId': '5678'}]
+                'description':
+                'User sessions retrieved successfully',
+                'examples': [{
+                    'user': 'john',
+                    'sessionId': '1234'
+                }, {
+                    'user': 'jane',
+                    'sessionId': '5678'
+                }]
             },
-            400: {'description': 'Bad request'}
+            400: {
+                'description': 'Bad request'
+            }
         }
     })
-    def get(self, user_id):
+    def get(self):
         """
         Get user sessions by user ID.
         """
         user_id = request.args.get('user_id')
         if not user_id:
             return jsonify({"error": "User ID is required"}), 400
-        
+
         try:
             all_users = self.db.user_collection.find({"user": user_id})
-            data_list = [{"user": data["user"], "sessionId": data["sessionId"]} for data in all_users]
-            return make_response(jsonify(data_list), 200)
+            data_list = [{
+                "user": data["user"],
+                "sessionId": data["sessionId"]
+            } for data in all_users]
+            print(data_list)
+            return make_response(data_list, 200)
         except Exception as e:
             print(e)
             abort(500)
+
 
 class SessionResource(Resource):
 
@@ -131,35 +152,35 @@ class SessionResource(Resource):
 
     @swag_from({
         'tags': ['sessions'],
-        'parameters': [
-        {
+        'parameters': [{
             'in': 'path',
             'name': 'session_id',
             'type': 'string',
             'required': True
-        },
-        {
+        }, {
             'in': 'query',
             'name': 'title',
             'type': 'string'
-        },  
-        {
+        }, {
             'in': 'body',
             'name': 'user_messages',
             'schema': {
                 'id': 'Session',
-            'example': {
-                'messages': 'hello world'
+                'example': {
+                    'messages': 'hello world'
                 }
             }
-        }
-        ],
+        }],
         'responses': {
             200: {
                 'description': 'Session details retrieved successfully',
             },
-            400: {'description': 'Bad request'},
-            404: {'description': 'Session not found'}
+            400: {
+                'description': 'Bad request'
+            },
+            404: {
+                'description': 'Session not found'
+            }
         }
     })
     def put(self, session_id):
@@ -169,35 +190,43 @@ class SessionResource(Resource):
         new_title = request.args.get('title')
         request_data = request.get_json()
 
-        if not session_id or (not new_title and (not request_data or 'messages' not in request_data)):
-            return {"error": "Either session ID is invalid or title does not exist"}, 400
-        
+        if not session_id or (not new_title and
+                              (not request_data
+                               or 'messages' not in request_data)):
+            return {
+                "error": "Either session ID is invalid or title does not exist"
+            }, 400
+
         session = self.db.user_collection.find_one({"sessionId": session_id})
         if not session:
             return {"error": "Session not found"}, 404
-        
+
         del session["_id"]
 
         if new_title:
             session['title'] = new_title
         new_message = request_data['messages']
         # Process message content (e.g., using OpenAI chat)
-        # For demonstration purposes, adding a default response       
+        # For demonstration purposes, adding a default response
         session['messages'].append(new_message)
-        
-        if(self.mockChatgpt):
+
+        if (self.mockChatgpt):
             response_from_openai = "Sorry, I don't understand."
         else:
             chat_history = session['messages']
-            response_from_openai = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=chat_history)
- 
+            response_from_openai = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo", messages=chat_history)
+
         session['messages'].append(response_from_openai)
-        
+
         new_session = {"$set": session}
-        result = self.db.user_collection.update_one({"sessionId": session_id}, new_session)
+        result = self.db.user_collection.update_one({"sessionId": session_id},
+                                                    new_session)
 
         if result.modified_count == 0:
-            return {"error": "Either session ID is invalid or title does not exist"}, 400
+            return {
+                "error": "Either session ID is invalid or title does not exist"
+            }, 400
 
         return make_response(session, 200)
 
@@ -212,10 +241,16 @@ class SessionResource(Resource):
         'responses': {
             200: {
                 'description': 'Session deleted successfully.',
-                'examples': {'sessionId': '1234'}
+                'examples': {
+                    'sessionId': '1234'
+                }
             },
-            400: {'description': 'Bad request'},
-            404: {'description': 'Session not found'}
+            400: {
+                'description': 'Bad request'
+            },
+            404: {
+                'description': 'Session not found'
+            }
         }
     })
     def delete(self, session_id):
@@ -224,7 +259,7 @@ class SessionResource(Resource):
         """
         if not session_id:
             return {"error": "Session ID is required."}, 400
-        
+
         session = self.db.user_collection.find_one({"sessionId": session_id})
         if session:
             self.db.user_collection.delete_one({"sessionId": session_id})
@@ -243,10 +278,16 @@ class SessionResource(Resource):
         'responses': {
             200: {
                 'description': 'Get session details by session ID.',
-                'examples': {'sessionId': '1234'}
+                'examples': {
+                    'sessionId': '1234'
+                }
             },
-            400: {'description': 'Bad request'},
-            404: {'description': 'Session not found'}
+            400: {
+                'description': 'Bad request'
+            },
+            404: {
+                'description': 'Session not found'
+            }
         }
     })
     def get(self, session_id):
@@ -255,21 +296,30 @@ class SessionResource(Resource):
         """
         if not session_id:
             return {"error": "Session ID is required"}, 400
-        
+
         try:
-            session = self.db.user_collection.find_one({"sessionId": session_id})
+            session = self.db.user_collection.find_one(
+                {"sessionId": session_id})
             del session["_id"]
             return make_response(jsonify(session), 200)
         except Exception as e:
             print(e)
             abort(500)
 
+
 app = Flask(__name__)
 api = Api(app)
 swagger = Swagger(app)
 database_manager = DatabaseManager(mock_db=False)
-api.add_resource(UserResource, '/user', resource_class_kwargs={'database_manager': database_manager})
-api.add_resource(SessionResource, '/session/<string:session_id>', resource_class_kwargs={'database_manager': database_manager, 'mockChatgpt':True})
+api.add_resource(UserResource,
+                 '/user',
+                 resource_class_kwargs={'database_manager': database_manager})
+api.add_resource(SessionResource,
+                 '/session/<string:session_id>',
+                 resource_class_kwargs={
+                     'database_manager': database_manager,
+                     'mockChatgpt': True
+                 })
 
 if __name__ == '__main__':
     app.run(debug=True)
