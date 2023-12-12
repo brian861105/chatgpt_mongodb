@@ -217,12 +217,18 @@ class SessionResource(Resource):
                     os.path.join(os.path.dirname(__file__), '..', 'tmp',
                                  'key.json')) as f:
                 key_json = json.load(f)
-            openai_password = key_json["mongodb"]
+            openai_password = key_json["openai"]
             openai.api_key = openai_password
-            chat_history = session['messages']
+            chat_history = []
+            for i in range(len(session['messages'])):
+                if(i % 2):
+                    role = "assistant"
+                else:
+                    role = "user"
+                chat_history.append({"role":role,
+                                    "content":session['messages'][i]})
             response_from_openai = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo", messages=chat_history)
-
+                model="gpt-3.5-turbo", messages=chat_history).choices[0].message.content
         session['messages'].append(response_from_openai)
 
         new_session = {"$set": session}
@@ -324,7 +330,7 @@ api.add_resource(SessionResource,
                  '/session/<string:session_id>',
                  resource_class_kwargs={
                      'database_manager': database_manager,
-                     'mockChatgpt': True
+                     'mockChatgpt': False
                  })
 
 if __name__ == '__main__':
