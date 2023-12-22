@@ -1,20 +1,31 @@
-from pymongo import MongoClient
+# from pymongo import MongoClient
+from mongomock import MongoClient
 
-# mock_db = False
-# if mock_db:
-#     from mongomock import MongoClient as MockMongoClient
-#     self.client = MockMongoClient()
-# else:
-#     with open(
-#             os.path.join(os.path.dirname(__file__), '..', 'tmp',
-#                             'key.json')) as f:
-#         key_json = json.load(f)
-#     mg_password = key_json["mongodb"]
-#     uri = f"mongodb+srv://master:{mg_password}@cluster0.7pgqvs4.mongodb.net/?retryWrites=true&w=majority"
-#     self.client = MongoClient(uri, server_api=ServerApi('1'))
+class DatabaseManager:
+    def __init__(self, mock_db=False, simulate_connection_failure = True):
+        if mock_db:
+            self.client = MongoClient()
+            self.simulate_connection_failure = simulate_connection_failure
+        else:
+            self.client = MongoClient('mongodb://localhost:27017/')
 
-# try:
-#     self.client.admin.command('ping')
-#     print(
-#         "Pinged your deployment. You successfully connected to MongoDB!"
-#     )
+        self.db_name = "test"
+    def is_connect(self):
+        try:
+            if self.simulate_connection_failure:
+                raise Exception("Simulated connection failure")
+            self.client.server_info()
+            return True
+        except Exception as e:
+            print(f"Connection error: {e}")
+            return False
+
+    def create_collection(self, collection_name):
+        try:
+            
+            self.client[self.db_name].insert_one(collection_name)
+            return True
+        except Exception as e:
+            print(f"Collection creation error: {e}")
+            return False
+            
