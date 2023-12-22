@@ -1,4 +1,3 @@
-<<<<<<< Updated upstream
 # test_database.py
 import pytest
 from pymongo import MongoClient
