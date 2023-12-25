@@ -86,8 +86,20 @@ class DatabaseManager:
         try:
             Collection = self.database[UserId]
             FilterCondition = {"SessionId": SessionId}
-            UpdateOperation = {"Title": NewTitle}
+            UpdateOperation = {"$set": {"Title": NewTitle}}
             result = Collection.update_one(FilterCondition, UpdateOperation)
             return result.modified_count > 0
         except Exception as e:
             print(f"Session Rename Title Error: {e}")
+
+    def UpoloadMessage(self, UserId, SessionId, NewMessage):
+        try:
+            Collection = self.database[UserId]
+            FilterCondition = {"SessionId": SessionId}
+            Messages = Collection.find_one({"SessionId": SessionId})["messages"]
+            Messages.append(NewMessage)
+            UpdateOperation = {"$set": {"messages": Messages}}
+            result = Collection.update_one(FilterCondition, UpdateOperation)
+            return result.modified_count > 0
+        except Exception as e:
+            print(f"Message Delivery Error: {e}")

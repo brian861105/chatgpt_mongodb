@@ -63,12 +63,23 @@ def test_DeleteSessionDatabase():
     assert result == True
 
 
-# def test_RenameSessionTitle():
-#     database_manager = DatabaseManager()
-#     UserId = "UserId"
-#     CreateData = database_manager.CreateSession(UserId)
-#     CreateData = json.loads(CreateData)
-#     SessionId = CreateData["SessionId"]
-#     NewTitle = "hello world"
-#     result = database_manager.RenameSessionTitle(UserId, SessionId, NewTitle)
-#     assert result == True
+def test_RenameSessionTitle():
+    database_manager = DatabaseManager()
+    UserId = "UserId"
+    CreateData = database_manager.CreateSession(UserId)
+    CreateData = json.loads(CreateData)
+    SessionId = CreateData["SessionId"]
+    NewTitle = "hello world"
+    result = database_manager.RenameSessionTitle(UserId, SessionId, NewTitle)
+    assert result == True
+
+
+def test_UpdateSessionMessage():
+    database_manager = DatabaseManager()
+    UserId = "UserId"
+    CreateData = database_manager.CreateSession(UserId)
+    CreateData = json.loads(CreateData)
+    SessionId = CreateData["SessionId"]
+    NewMessage = "hello world"
+    result = database_manager.UpoloadMessage(UserId, SessionId, NewMessage)
+    assert result == True
