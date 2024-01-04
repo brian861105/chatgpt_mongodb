@@ -1,0 +1,40 @@
+{'destination': 'Uc0cb53067b2ce6cbe8e161385edbdcf2', 
+'events': [
+        {'type': 'message', 'message': {'type': 'text', 'id': '489085575476543669', 'quoteToken': 'XTYqLJAB9VT_Z70PvqtVciJqaEatAdxrVpINNMTl64qdll5zmcF_B0XhRjdsMxIIm2YusGHKqINDP09uFQduhlOeErtCNBvc6ZydK8YdCna5pVTn-o3qxaaiFCoRuYwBpzEXiax-0RpSVPHmbNhItA', 'text': 'hello world'
+            }, 'webhookEventId': '01HK9HWG70MVYVSZQN73PSV54K', 'deliveryContext': {'isRedelivery': False
+            }, 'timestamp': 1704349024069, 'source': {'type': 'user', 'userId': 'Ubed2f18a5cf054acadf124cf1be92c7d'
+            }, 'replyToken': '291a7f396238488ea2c3e6220533a6f0', 'mode': 'active'
+        }
+    ]
+}
+{'destination': 'Uc0cb53067b2ce6cbe8e161385edbdcf2', 'events': [
+        {'type': 'message', 'message': {'type': 'sticker', 'id': '489085812588675268', 'quoteToken': 'Ff6EWEcvLaoSUGtSux9NfgnoezdABYUSKxBDb49-NvqcQWieuMM8_I7RtsoPwzwrpQun-UTR7vBebhm74DshZhYa4NiXDMrfGH9XIuafNqwjJQYjoJjNJqrTFL-7akXgahVs88-tg0tbz3R7rdhvDw', 'stickerId': '331880905', 'packageId': '12512819', 'stickerResourceType': 'STATIC', 'keywords': ['OK', 'Affirmative'
+                ]
+            }, 'webhookEventId': '01HK9J0SXBGZ7B7KNCHQBMYNM5', 'deliveryContext': {'isRedelivery': False
+            }, 'timestamp': 1704349165415, 'source': {'type': 'user', 'userId': 'Ubed2f18a5cf054acadf124cf1be92c7d'
+            }, 'replyToken': 'ae8235a4e2054e4abaad3bd57534d256', 'mode': 'active'
+        }
+    ]
+}
+{'destination': 'Uc0cb53067b2ce6cbe8e161385edbdcf2', 'events': [
+        {'type': 'message', 'message': {'type': 'image', 'id': '489086117111660547', 'quoteToken': 'vtWjNrlHBbSooLGz03GJD5rALC04zAFqPXZSwUtJCOdW7BSBEItnZKUYfJN_9mmHjgZIS7I2WFSKsmsfTdWoCfQCtD4Ev1Q8YpOpWfnqKGoCSw04P9ApuGSTDgzuJ1RDMDRsNGvGO_QNZTKGlBelmQ', 'contentProvider': {'type': 'line'
+                }
+            }, 'webhookEventId': '01HK9J6BSSVKHZENCMFZX1JSFD', 'deliveryContext': {'isRedelivery': False
+            }, 'timestamp': 1704349347135, 'source': {'type': 'user', 'userId': 'Ubed2f18a5cf054acadf124cf1be92c7d'
+            }, 'replyToken': '2dbbc538ca8b4fdf99fe7eae8c634323', 'mode': 'active'
+        }
+    ]
+}
+
+curl -v -X POST https: //api.line.me/v2/bot/message/push \
+-H 'Content-Type: application/json' \
+-H 'Authorization: GlqNPb8QJI9/jM794rYvlSYkdY4rFUmagigq2FyPh/FmSDD55cQDVJ5rG0Nh8jZUMafeVVRS+JHsfdOFCvxUO8yE5PMN/Z1j/gT17+xVx1QPlnZJmzjLf9rMBdpkqyrEaYh9VM+ktPFNQPfqFcsWPgdB04t89/1O/w1cDnyilFU=' \
+-d '{
+    "to": "Ubed2f18a5cf054acadf124cf1be92c7d",
+    "messages": [
+        {
+            "type": "text",
+            "text": "Hello, this is a test message."
+        }
+    ]
+}'
