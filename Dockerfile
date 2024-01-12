@@ -2,9 +2,9 @@ FROM python:3.10
 
 WORKDIR /root
 
-COPY . /app
+COPY . /root/chatroom-backend/
 
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r chatroom-backend/requirements.txt
 
 EXPOSE 5000
 
