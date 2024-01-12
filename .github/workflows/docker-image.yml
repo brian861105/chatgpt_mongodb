@@ -21,3 +21,6 @@ jobs:
         MongodbKey: ${{ secrets.MongodbKey }}
         OpenaiKey: ${{ secrets.OpenaiKey }}
         LineBotToken: ${{ secrets.LineBotToken }}
+
+    - name: Show environment variable
+      run: echo "MongodbUser is $MongodbUser"
