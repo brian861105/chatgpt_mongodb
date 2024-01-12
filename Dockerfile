@@ -8,4 +8,4 @@ RUN pip install --no-cache-dir -r chatroom-backend/requirements.txt
 
 EXPOSE 5000
 
-CMD ["python", "app/api.py"]
+CMD ["python", "chatroom-backend/app/api.py"]
