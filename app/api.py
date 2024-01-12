@@ -334,7 +334,7 @@ api.add_resource(SessionResource,
                  })
 
 if __name__ == '__main__':
-    docker = False
+    docker = True
     if docker:
         app.run(debug=True, host="0.0.0.0")
     else:
