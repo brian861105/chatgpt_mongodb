@@ -1,17 +1,15 @@
 import src.openaiAPI as openaiAPI
 import src.Database as Database
 
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, Blueprint
 
 database = Database.mongo_client()
 GPT = openaiAPI.ChatGPT()
 
+backend_blueprint = Blueprint('linebot_receive_message', __name__)
 
-app = Flask(__name__)
 
-
-@app.route("/")
-@app.route("/linebot_receive_message", method=["POST"])
+@backend_blueprint.route("/", method=["POST"])
 def receive_message():
     data = request.json
     user_id = data["user_id"]
@@ -24,5 +22,3 @@ def receive_message():
     }
 
     return ChatapiReply, 200
-
-

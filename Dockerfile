@@ -5,7 +5,7 @@ WORKDIR /root
 COPY . /root/chatroom-backend/
 
 RUN pip install --no-cache-dir -r chatroom-backend/requirements.txt
-
+RUN 
 EXPOSE 5000
 
-CMD ["python", "chatroom-backend/app/api.py"]
+CMD ["sh", "-c", "sh chatroom-backend/tmp/key.sh && python chatroom-backend/app/api.py"]

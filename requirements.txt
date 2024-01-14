@@ -3,3 +3,4 @@ Flask-RESTful==0.3.10
 pymongo==4.6.1
 openai==0.28
 flasgger==0.9.7.1
+line-bot-sdk==3.7.0

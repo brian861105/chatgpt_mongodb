@@ -9,6 +9,8 @@ import json
 import os
 from flasgger import Swagger, swag_from
 
+mg_password = os.getenv('MongoDBToken')
+
 
 ## test
 class DatabaseManager:
@@ -18,11 +20,6 @@ class DatabaseManager:
             from mongomock import MongoClient as MockMongoClient
             self.client = MockMongoClient()
         else:
-            with open(
-                    os.path.join(os.path.dirname(__file__), '..', 'tmp',
-                                 'key.json')) as f:
-                key_json = json.load(f)
-            mg_password = key_json["mongodb"]
             uri = f"mongodb+srv://master:{mg_password}@cluster0.7pgqvs4.mongodb.net/?retryWrites=true&w=majority"
             self.client = MongoClient(uri, server_api=ServerApi('1'))
 
@@ -96,14 +93,13 @@ class UserResource(Resource):
             print(e)
             abort(500)
 
-
     @swag_from({
         'tags': ['users'],
         'parameters': [{
             'in': 'query',
             'name': 'user_id',
             'type': 'string',
-            'example':'SINOPAC',
+            'example': 'SINOPAC',
             'required': True
         }],
         'responses': {
@@ -221,14 +217,17 @@ class SessionResource(Resource):
             openai.api_key = openai_password
             chat_history = []
             for i in range(len(session['messages'])):
-                if(i % 2):
+                if (i % 2):
                     role = "assistant"
                 else:
                     role = "user"
-                chat_history.append({"role":role,
-                                    "content":session['messages'][i]})
+                chat_history.append({
+                    "role": role,
+                    "content": session['messages'][i]
+                })
             response_from_openai = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo", messages=chat_history).choices[0].message.content
+                model="gpt-3.5-turbo",
+                messages=chat_history).choices[0].message.content
         session['messages'].append(response_from_openai)
 
         new_session = {"$set": session}
@@ -339,4 +338,3 @@ if __name__ == '__main__':
         app.run(debug=True, host="0.0.0.0")
     else:
         app.run(debug=True)
-        
