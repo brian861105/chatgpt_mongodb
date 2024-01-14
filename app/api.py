@@ -9,7 +9,7 @@ import json
 import os
 from flasgger import Swagger, swag_from
 
-mg_password = os.getenv('MongoDBToken')
+mg_password = os.getenv('MongodbToken')
 
 
 ## test
@@ -333,7 +333,7 @@ api.add_resource(SessionResource,
                  })
 
 if __name__ == '__main__':
-    docker = True
+    docker = False
     if docker:
         app.run(debug=True, host="0.0.0.0")
     else:
