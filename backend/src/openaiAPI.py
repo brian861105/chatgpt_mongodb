@@ -1,6 +1,6 @@
-from config.config import OpenaiKey
 import openai
-
+import os
+OpenaiKey = os.getenv("OpenaiToken")
 
 class ChatGPT:
     def __init__(self, model="gpt-3.5-turbo", MaxToken=5):

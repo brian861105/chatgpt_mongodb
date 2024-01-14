@@ -3,9 +3,11 @@ from pymongo import MongoClient
 import json
 import uuid
 from datetime import datetime
-from config.config import MongoURI
+import os
 
-
+mongo_user = os.getenv("MongodbUser")
+mongo_password = os.getenv("MongodbToken")
+MongoURI = f"mongodb+srv://{mongo_user}:{mongo_password}@cluster0.7pgqvs4.mongodb.net/?retryWrites=true&w=majority"
 class DatabaseManager:
     def __init__(self, SimulateConnectionFailure=True):
         self.client = MongoClient(MongoURI)
