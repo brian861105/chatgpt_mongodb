@@ -1,6 +1,6 @@
 import os
 
-channel_secret = os.getenv('LineBOTChannelSecret')
+channel_secret = os.getenv('LineBotChannelSecret')
 channel_access_token = os.getenv('LineBotToken')
 
 target_api_url = os.getenv('FLASK_API_URL')
