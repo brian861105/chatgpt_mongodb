@@ -1,7 +1,7 @@
 import os
 
-channel_secret = os.getenv('CHANNEL_SECRET')
-channel_access_token = os.getenv('CHANNEL_ACCESS_TOKEN')
+channel_secret = os.getenv('LineBOTChannelSecret')
+channel_access_token = os.getenv('LineBOTToken')
 target_api_url = os.getenv('FLASK_API_URL')
 from flask import Flask, request, abort
 from linebot import LineBotApi, WebhookHandler
@@ -42,4 +42,4 @@ def default(event):
 
 
 if __name__ == "__main__":
-    app.run(port=6000)
+    app.run(port=8888)
