@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChatGPT Frontend</title>
+    <style>
+        body {
+            display: flex;
+            height: 100vh;
+            margin: 0;
+        }
+
+        #session-list {
+            width: 200px;
+            background-color: #f0f0f0;
+            padding: 20px;
+            box-shadow: 1px 0 5px rgba(0, 0, 0, 0.1);
+        }
+
+        #chat-container {
+            flex: 1;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        #chat-log {
+            max-height: 400px;
+            overflow-y: auto;
+            margin-bottom: 10px;
+        }
+
+        .session-item {
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            align-items: center;
+            transition: background-color 0.3s; 
+        }
+
+        .session-item span {
+            margin-right: 10px;
+        }
+
+        .session-item-active {
+            background-color: #cfd8dc; 
+        }
+
+        .session-options {
+            display: flex;
+            gap: 5px;
+        }
+
+        .session-options i {
+            cursor: pointer;
+        }
+
+        #user-input-container {
+            display: flex;
+            align-items: center;
+        }
+
+        #user-input {
+            flex: 1;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="session-list">
+        <h2>ChatRoom</h2>
+        <button onclick="addSession()">Add Session</button>
+        <ul id="session-menu"></ul>
+    </div>
+
+    <div id="chat-container">
+        <div id="chat-log"></div>
+        <div id="user-input-container">
+            <input type="text" id="user-input" placeholder="Type your message...">
+            <button onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <script>
+        const UserId = "TestForFront"
+        const sessionMenuElement = document.getElementById('session-menu');
+        const chatLogElement = document.getElementById('chat-log');
+        const userInputElement = document.getElementById('user-input');
+
+        let sessions = [];
+        let currentSessionIndex = -1;
+
+        function appendMessage(sender, message) {
+            const messageElement = document.createElement('div');
+            messageElement.innerHTML = `<strong>${sender}:</strong> ${message}`;
+            chatLogElement.appendChild(messageElement);
+        }
+
+        function switchSession(index) {
+            document.querySelectorAll('.session-item').forEach(item => item.classList.remove('session-item-active'));
+            sessionMenuElement.children[index].classList.add('session-item-active');
+
+            currentSessionIndex = index;
+            chatLogElement.innerHTML = '';  // 清空聊天窗口
+
+            const ReadSessionUrl = '/database/read_session';
+            
+            const requestData = {
+                UserId: UserId,
+                SessionId: sessions[currentSessionIndex].sessionId,
+            };
+            console.log('Session data:', sessions.length)
+            fetch(ReadSessionUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestData),
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Session messages:', data);
+
+                // 將後端返回的消息添加到本地數據
+                sessions[currentSessionIndex].messages = data.messages;
+
+                // 更新 HTML 顯示
+                for (let i = 0; i < sessions[currentSessionIndex].messages.length; i++) {
+                    const message = sessions[currentSessionIndex].messages[i];
+                    const sender = (i % 2 === 0) ? 'You' : 'ChatGPT';
+
+                    appendMessage(sender, message);
+                }
+            })
+            .catch(error => console.error('Error fetching session messages:', error));
+        }
+
+
+
+        // 在頁面載入時觸發
+        document.addEventListener("DOMContentLoaded", function () {
+            const ReadUserIdUrl = "/database/read_user?UserId=" + UserId;
+            fetchDefaultUserData(ReadUserIdUrl);
+        });
+
+        // 保留其他函數不變
+        function fetchDefaultUserData(ReadUserIdUrl) {
+            fetch(ReadUserIdUrl)
+                .then(response => response.json())
+                .then(data => {
+                    console.log('User sessions data:', data);
+
+                    // 清空原有 sessions
+                    sessions = [];
+
+                    // 更新 Session 列表
+                    const sessionMenu = document.getElementById('session-menu');
+                    sessionMenu.innerHTML = '';  // 清空原有列表
+
+                    for (const session of data) {
+                        index = 0;
+                        sessions.push({
+                            name: session.Title,
+                            sessionId: session.SessionId,
+                            messages: []  // 假設 messages 部分還需要從後端獲取
+                        });
+
+                        const sessionItem = document.createElement('li');
+                        sessionItem.classList.add('session-item');
+                        sessionItem.innerHTML = `
+                            <div class="session-title" onclick="switchSession(${sessions.length - 1})">${session.Title}</div>
+                            <div class="session-options">
+                                <i onclick="editSessionName(${sessions.length - 1})">&#9998;</i>
+                                <i onclick="removeSession(${sessions.length - 1})">&#10006;</i>
+                            </div>
+                        `;
+                        sessionMenu.appendChild(sessionItem);
+                    }
+
+                    // 選擇第一個 session
+                    switchSession(0);
+                })
+                .catch(error => console.error('Error fetching user sessions data:', error));
+        }
+
+
+        function sendMessageToBackend(message) {
+            const sendMessageUrl = '/database/update_session';
+
+            fetch(sendMessageUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    UserId: UserId,
+                    SessionId:sessions[currentSessionIndex].sessionId,
+                    message: message,
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Backend response:', data);
+
+                if (data.message) {
+                    const newSessionMessage = {
+                        sender: 'ChatGPT',
+                        message: data.message,
+                    };
+
+                    sessions[currentSessionIndex].messages.push(newSessionMessage);
+                    appendMessage(newSessionMessage.sender, newSessionMessage.message);
+                }
+            })
+            .catch(error => console.error('Error sending message to backend:', error));
+        }
+
+        function addSession() {
+            const defaultSessionName = 'new title';
+            const newSession = {
+                name: defaultSessionName,
+                messages: [],
+            };
+            const AddSessionURL = '/database/create_session';
+
+            fetch(AddSessionURL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    UserId: UserId,
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Backend response (New Session):', data);
+                newSession.SessionId=data.SessionId;
+                sessions.push(newSession);
+            })
+            .catch(error => console.error('Error creating new session:', error));
+
+            const sessionItem = document.createElement('li');
+            sessionItem.classList.add('session-item');
+            sessionItem.innerHTML = `
+                <span>${newSession.name}</span>
+                <div class="session-options">
+                    <i onclick="editSessionName(${sessions.length - 1})">&#9998;</i>
+                    <i onclick="removeSession(${sessions.length - 1})">&#10006;</i>
+                </div>
+            `;
+            sessionItem.onclick = () => switchSession(sessions.length - 1);
+            sessionMenuElement.appendChild(sessionItem);
+
+            switchSession(sessions.length - 1);
+            userInputElement.value = '';
+        }
+
+        function editSessionName(index) {
+            const currentSession = sessions[index];
+            const newSessionName = prompt('Enter new session name:', currentSession.name);
+
+            if (newSessionName !== null) {
+                // 更新本地數據
+                currentSession.name = newSessionName;
+                document.querySelectorAll('.session-item span')[index].textContent = newSessionName;
+
+                // 向後端發送 POST 請求
+                const RenameSessionUrl = '/database/rename_session';
+
+                fetch(RenameSessionUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        UserId: UserId,
+                        SessionId: currentSession.sessionId,  // 修改成你的實際屬性
+                        NewTitle: newSessionName,
+                    }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Session renamed:', data);
+
+                    // 可以在這裡執行其他操作或處理後端的回應...
+                })
+                .catch(error => console.error('Error renaming session:', error));
+            }
+        }
+
+
+        function removeSession(index) {
+            const currentSession = sessions[index];
+            const confirmRemove = confirm('Are you sure you want to remove this session?');
+            if (confirmRemove) {
+                sessions.splice(index, 1);
+                sessionMenuElement.removeChild(sessionMenuElement.children[index]);
+                const RemoveSessionUrl = '/database/delete_session';
+                fetch(RemoveSessionUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        UserId: UserId,
+                        SessionId: currentSession.sessionId,
+                    }),
+                })
+                if (currentSessionIndex === index) {
+                    switchSession(0);
+                }
+            }
+        }
+
+        function sendMessage() {
+            const userMessage = userInputElement.value.trim();
+            if (userMessage === '') return;
+
+            sendMessageToBackend(userMessage);
+
+            const message = {
+                sender: 'You',
+                message: userMessage,
+            };
+
+            sessions[currentSessionIndex].messages.push(message);
+            appendMessage(message.sender, message.message);
+
+            userInputElement.value = '';
+        }
+
+        userInputElement.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>

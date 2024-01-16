@@ -53,9 +53,9 @@ def handle_message(event):
     with ApiClient(configuration) as api_client:
         line_bot_api = MessagingApi(api_client)
         user_id = event.source.user_id
-        # print(event.source.user_id)
         client_text = event.message.text
         data = {
+            "user_id": user_id,
             "role" : "assistant",
             "content": client_text
         }

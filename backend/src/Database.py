@@ -16,7 +16,6 @@ class DatabaseManager:
     def IsConnect(self):
         try:
             if self.SimulateConnectionFailure:
-                # raise Exception("Simulated connection failure")
                 return False
             self.client.server_info()
             return True
@@ -47,7 +46,7 @@ class DatabaseManager:
             collection = self.database[UserId]
             documents = collection.find()
             SessionList = [
-                {"UserId": UserId, "SessionId": document.get("SessionId")}
+                {"UserId": UserId, "SessionId": document.get("SessionId"), "Title": document.get("Title")}
                 for document in documents
             ]
             SessionList = json.dumps(SessionList)
@@ -83,7 +82,16 @@ class DatabaseManager:
             return result.deleted_count > 0
         except Exception as e:
             print(f"Session Delete Error: {e}")
-
+    def ReadSession(self, UserId, SessionId):
+        try:
+            Collection = self.database[UserId]
+            FilterCondition = {"SessionId": SessionId}
+            SessionContent = Collection.find_one(FilterCondition)
+            del SessionContent["_id"]
+            return SessionContent
+        except Exception as e:
+            print(f"Session Read Error: {e}")
+        
     def RenameSessionTitle(self, UserId, SessionId, NewTitle):
         try:
             Collection = self.database[UserId]
