@@ -11,6 +11,7 @@ linebot_receive_blueprint = Blueprint('linebot_receive', __name__)
 def receive_message():
     data = request.json
     message_test = data["content"]
+    print(message_test)
     OldMessage = []
     NewMessage = {"role": "user", "content": message_test}
     AImessage =GPT.Chat(OldMessage, NewMessage)[-1]["content"]

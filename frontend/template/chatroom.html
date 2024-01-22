@@ -102,6 +102,8 @@
         }
 
         function switchSession(index) {
+            console.log("index:", index);
+            console.log("SessionItem:", sessions[index]);
             document.querySelectorAll('.session-item').forEach(item => item.classList.remove('session-item-active'));
             sessionMenuElement.children[index].classList.add('session-item-active');
 
@@ -109,12 +111,12 @@
             chatLogElement.innerHTML = '';  // 清空聊天窗口
 
             const ReadSessionUrl = '/database/read_session';
-            
+
             const requestData = {
                 UserId: UserId,
-                SessionId: sessions[currentSessionIndex].sessionId,
+                SessionId: sessions[currentSessionIndex].SessionId,
             };
-            console.log('Session data:', sessions.length)
+
             fetch(ReadSessionUrl, {
                 method: 'POST',
                 headers: {
@@ -124,12 +126,13 @@
             })
             .then(response => response.json())
             .then(data => {
-                console.log('Session messages:', data);
+                console.log('Session messages:',sessions[currentSessionIndex]);
 
                 // 將後端返回的消息添加到本地數據
                 sessions[currentSessionIndex].messages = data.messages;
 
                 // 更新 HTML 顯示
+                // console.log(sessions[currentSessionIndex].messages.length);
                 for (let i = 0; i < sessions[currentSessionIndex].messages.length; i++) {
                     const message = sessions[currentSessionIndex].messages[i];
                     const sender = (i % 2 === 0) ? 'You' : 'ChatGPT';
@@ -166,7 +169,7 @@
                         index = 0;
                         sessions.push({
                             name: session.Title,
-                            sessionId: session.SessionId,
+                            SessionId: session.SessionId,
                             messages: []  // 假設 messages 部分還需要從後端獲取
                         });
 
@@ -186,6 +189,7 @@
                     switchSession(0);
                 })
                 .catch(error => console.error('Error fetching user sessions data:', error));
+            console.log("sessions length:", sessions.length);
         }
 
 
@@ -199,7 +203,7 @@
                 },
                 body: JSON.stringify({
                     UserId: UserId,
-                    SessionId:sessions[currentSessionIndex].sessionId,
+                    SessionId:sessions[currentSessionIndex].SessionId,
                     message: message,
                 }),
             })
@@ -240,59 +244,77 @@
             .then(response => response.json())
             .then(data => {
                 console.log('Backend response (New Session):', data);
-                newSession.SessionId=data.SessionId;
+                
+                newSession.SessionId = data.SessionId;
                 sessions.push(newSession);
+
+                // Create and append the new session item to the DOM
+                const sessionItem = document.createElement('li');
+                sessionItem.classList.add('session-item');
+                sessionItem.innerHTML = `
+                    <span>${newSession.name}</span>
+                    <div class="session-options">
+                        <i onclick="editSessionName(${sessions.length - 1})">&#9998;</i>
+                        <i onclick="removeSession(${sessions.length - 1})">&#10006;</i>
+                    </div>
+                `;
+                sessionItem.onclick = () => switchSession(sessions.length - 1);
+                sessionMenuElement.appendChild(sessionItem);
+                
+                switchSession(sessions.length - 1);
+                userInputElement.value = '';
             })
             .catch(error => console.error('Error creating new session:', error));
-
-            const sessionItem = document.createElement('li');
-            sessionItem.classList.add('session-item');
-            sessionItem.innerHTML = `
-                <span>${newSession.name}</span>
-                <div class="session-options">
-                    <i onclick="editSessionName(${sessions.length - 1})">&#9998;</i>
-                    <i onclick="removeSession(${sessions.length - 1})">&#10006;</i>
-                </div>
-            `;
-            sessionItem.onclick = () => switchSession(sessions.length - 1);
-            sessionMenuElement.appendChild(sessionItem);
-
-            switchSession(sessions.length - 1);
-            userInputElement.value = '';
         }
+
 
         function editSessionName(index) {
             const currentSession = sessions[index];
+
             const newSessionName = prompt('Enter new session name:', currentSession.name);
 
             if (newSessionName !== null) {
-                // 更新本地數據
                 currentSession.name = newSessionName;
-                document.querySelectorAll('.session-item span')[index].textContent = newSessionName;
 
-                // 向後端發送 POST 請求
-                const RenameSessionUrl = '/database/rename_session';
+                const sessionItems = document.querySelectorAll('.session-item');
 
-                fetch(RenameSessionUrl, {
+                // Check if the index is within the valid range
+                if (index >= 0 && index < sessionItems.length) {
+                    // Update the frontend display
+                    // sessionItems[index].textContent = newSessionName;
+                    sessionItems[index].innerHTML = `
+                        <span>${currentSession.name}</span>
+                        <div class="session-options">
+                            <i onclick="editSessionName(${index})">&#9998;</i>
+                            <i onclick="removeSession(${index})">&#10006;</i>
+                        </div>
+                    `;
+                } else {
+                    console.error('Invalid index:', index);
+                }
+
+                const renameSessionUrl = '/database/rename_session';
+
+                fetch(renameSessionUrl, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
                         UserId: UserId,
-                        SessionId: currentSession.sessionId,  // 修改成你的實際屬性
+                        SessionId: currentSession.SessionId,
                         NewTitle: newSessionName,
                     }),
                 })
                 .then(response => response.json())
                 .then(data => {
                     console.log('Session renamed:', data);
-
-                    // 可以在這裡執行其他操作或處理後端的回應...
+                    // You can perform other operations or handle the backend response here...
                 })
                 .catch(error => console.error('Error renaming session:', error));
             }
         }
+
 
 
         function removeSession(index) {
@@ -309,7 +331,7 @@
                     },
                     body: JSON.stringify({
                         UserId: UserId,
-                        SessionId: currentSession.sessionId,
+                        SessionId: currentSession.SessionId,
                     }),
                 })
                 if (currentSessionIndex === index) {

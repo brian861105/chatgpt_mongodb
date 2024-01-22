@@ -2,7 +2,7 @@ import os
 import requests
 channel_secret = os.getenv('LineBotChannelSecret')
 channel_access_token = os.getenv('LineBotToken')
-target_api_url = "http://0.0.0.0:80/linebot_receive_message"
+target_api_url = "http://0.0.0.0:80/line_receive/linebot_receive_message"
 
 from flask import Flask, request, abort, Blueprint, current_app
 
@@ -36,7 +36,7 @@ def callback():
 
     # get request body as text
     body = request.get_data(as_text=True)
-    current_app.logger.info("Request body: " + body)
+    # current_app.logger.info("Request body: " + body)
 
     # handle webhook body
     try:
