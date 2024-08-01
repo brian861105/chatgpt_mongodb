@@ -1,0 +1,34 @@
+version: '2.29.1'
+
+services:
+  mongodb:
+    image: mongo:8.0.0-rc13-jammy
+    container_name: my-mongodb
+    ports:
+      - "1433:1433"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+    volumes:
+      - ~/mongodb_data:/data/db
+
+  app:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    container_name: chatroom
+    ports:
+      - "443:443"
+      - "80:80"
+    stdin_open: true # Keep stdin open even if not attached
+    tty: true        # Allocate a pseudo-TTY
+    environment:
+      MONGO_URI: mongodb://root:example@mongodb:1433/mydatabase
+    depends_on:
+      - mongodb
+    volumes:
+      - ./app:/app
+
+volumes:
+  mongodb_data:
+    driver: local
