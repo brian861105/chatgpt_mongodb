@@ -5,8 +5,9 @@ services:
     image: mongo:8.0.0-rc13-jammy
     container_name: my-mongodb
     ports:
-      - "1433:1433"
+      - "27017:27017"
     environment:
+      MONGO_INITDB_DATABASE: Chatroom
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: example
     volumes:

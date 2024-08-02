@@ -1,9 +1,8 @@
 # db/mongodb_helper.py
 from pymongo import MongoClient
-from pymongo.errors import ConnectionError
-from db.nosql_db_helper_interface import NoSQLDBHelperInterface
+from Common.Database.iNoSqlDbHelper import iNoSqlDbHelper
 
-class MongoDBHelper(NoSQLDBHelperInterface):
+class MongoDBHelper(iNoSqlDbHelper):
     def __init__(self, uri: str, db_name: str):
         self.uri = uri
         self.db_name = db_name
@@ -47,7 +46,7 @@ class MongoDBHelper(NoSQLDBHelperInterface):
         except Exception as e:
             print(f"刪除文件失敗: {e}")
     
-    def close_connection(self):
+    def closeConnection(self):
         if self.client:
             self.client.close()
             print("MongoDB 連接已關閉")
